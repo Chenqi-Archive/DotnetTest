@@ -5,40 +5,52 @@
 */
 using Microsoft.Extensions.DependencyInjection;
 
-
 IServiceCollection services = new ServiceCollection();
 
-services.AddSingleton<I, A>();
-services.AddTransient<B>();
+services.AddSingleton<ILogger, ConsoleLogger>();
+services.AddTransient<A>();
 
 IServiceProvider provider = services.BuildServiceProvider();
-B b = provider.GetRequiredService<B>();
-b.Print();  // output: A
+A a = provider.GetRequiredService<A>();
+a.Log();  // output: A
 
 
-interface I
+interface ILogger
 {
-    void Print();
+    void Log(string text);
 }
 
-class A : I
+class ConsoleLogger : ILogger
 {
-    public void Print()
+    public ConsoleLogger()
     {
-        Console.WriteLine("A");
+    }
+
+    public void Log(string text)
+    {
+        Console.WriteLine(text);
     }
 }
 
-
-class B
+class FileLogger : ILogger
 {
-    readonly I i;
-    public B(I i)
+    public void Log(string text)
     {
-        this.i = i;
+        File.AppendAllText("logfile.log", text);
     }
-    public void Print()
+}
+
+class A
+{
+    private ILogger logger;
+
+    public A(ILogger logger)
     {
-        i.Print();
+        this.logger = logger;
+    }
+
+    public void Log()
+    {
+        logger.Log("A");
     }
 }
